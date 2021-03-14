@@ -66,6 +66,7 @@ public class IntroScreen implements ActionListener {
 
         //Shows the JFrame
         introFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        introFrame.setLocationRelativeTo(null);
         introFrame.setVisible(true);
     }
 
@@ -106,6 +107,8 @@ public class IntroScreen implements ActionListener {
         }
 
         //Clicking on the load button will read your playerPos and StageArea
+        //DIDNT USE SER METHID
+        //TODO MAKE IT LOAD WITH SER METHOD UNSERIALIZABLE
         if (e.getSource() == load) {
             try {
                 File readSave = new File("SaveFile.txt");

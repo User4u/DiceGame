@@ -5,10 +5,12 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.*;
 import java.util.ArrayList;
 
-public class LevelSelector implements ActionListener, Serializable {
+public class LevelSelector implements Serializable, KeyListener {
 
     //FIXME
     //Look into bufferImages
@@ -23,10 +25,9 @@ public class LevelSelector implements ActionListener, Serializable {
 
     //Swing junk JFrame > JPanel > JButton
     private JFrame levelFrame = new JFrame();
-    ;
+
 
     private JPanel topPanel = new JPanel();
-    private JPanel bottomPanel = new JPanel();
 
     private JButton moveButton = new JButton();
     private JButton saveButton = new JButton();
@@ -37,8 +38,10 @@ public class LevelSelector implements ActionListener, Serializable {
     //Player Pos should be 6 - 11; 6 being the beggining and 11 being the end
     private int levelArea;
     private int playerPos;
-    private int rowTopPanel = 5; //row = <--->
-    protected int colTopPanel = 6; //col = up or down
+
+    private int rowTopPanel = 7; //row = <--->
+    protected int colTopPanel = 7; //col = up or down
+    int borderFinder = rowTopPanel;
     private final int topPanelTotal = rowTopPanel * colTopPanel;
     private int castleLoc = colTopPanel + (colTopPanel - 1);
 
@@ -102,16 +105,35 @@ public class LevelSelector implements ActionListener, Serializable {
 
     }
 
-
-    //Gives the buttons purpose
+    //Use me to set up all the keys needed!
+    //In the feature I hope to implement paint method to help smooth the animation!!!
     @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == moveButton) {
+    public void keyPressed(KeyEvent keyEvent) {
+        int key = keyEvent.getKeyCode();
+        if (key == KeyEvent.VK_UP) {
 
-            //Makes it so you don't instatly transfer to the second area
+        }
+        if (key == KeyEvent.VK_LEFT) {
+            if (playerPos % 7 != 0) {
+                //Move freely into you get into the castle tile
+                System.out.println(playerPos);
+                if (playerPos != castleLoc ) {
+                    int newPlayerPos = getPlayerPos() - 1;
+                    //drawMapArray[newPlayerPos].setIcon(playerIcon);
+                    drawMapArray[newPlayerPos].setIcon(resizeIcon(playerIcon, topPanel.getWidth() / 5, topPanel.getHeight() / 5));
+                    drawMapArray[getPlayerPos()].setIcon(resizeIcon(road, topPanel.getWidth() / 5, topPanel.getHeight() / 5));
+                    //drawMapArray[getPlayerPos()].setIcon(road);
+                    setPlayerPos(newPlayerPos);
+                    System.out.println(playerPos);
+                }
+            }
+        }
+
+        //Pressing the right arrow key
+        if (key == KeyEvent.VK_RIGHT) {
             if (isLevelUp == false) {
                 //Move freely into you get into the castle tile
-                if (playerPos != castleLoc) {
+                if ( (playerPos != castleLoc)) {
                     int newPlayerPos = getPlayerPos() + 1;
                     //drawMapArray[newPlayerPos].setIcon(playerIcon);
                     drawMapArray[newPlayerPos].setIcon(resizeIcon(playerIcon, topPanel.getWidth() / 5, topPanel.getHeight() / 5));
@@ -134,15 +156,18 @@ public class LevelSelector implements ActionListener, Serializable {
             }
         }
 
-        //Inventory button actionListener
-        if (e.getSource() == inventoryButton) {
+        if (key == KeyEvent.VK_DOWN) {
 
         }
+        //If I press Q closes the APP
+        if (key == 81) {
+            System.exit(0);
+        }
 
-        //Save button actionListener
-        if (e.getSource() == saveButton) {
+        //Press the S button saves the game Hope to add animation to it sometime!
+        if(key == 83){
             try {
-                FileOutputStream fileIn = new FileOutputStream("DiceGame/Images/save.ser");
+                FileOutputStream fileIn = new FileOutputStream("Images/save.ser");
                 ObjectOutputStream in = new ObjectOutputStream(fileIn);
                 in.writeObject(this); //NEEDS TO IMPLEMENT SERIALIZABLE
                 in.close();
@@ -150,62 +175,33 @@ public class LevelSelector implements ActionListener, Serializable {
                 //this = null;
             } catch (Exception ex) {
                 ex.printStackTrace();
-            }/*
-            try{
-                FileWriter saveData = new FileWriter("SaveFile.txt");
-                //Write what's in the file line by line
-                saveData.write(getPlayerPos() + "\n");
-                saveData.write(getLevelArea() + "");
-
-                saveData.close();
-            }catch (IOException ioException) {
-                ioException.printStackTrace();
-            }*/
-        }
-
-        //Exit button actionListener
-        if (e.getSource() == exitButton) {
-            System.exit(0);
+            }
         }
     }
+
 
     //Runs all of the methods below
     public void createSwing() {
         //Set up the JFrame
         createFrame(levelFrame);
         //Set the top and bottomPanel
-        createPanel(topPanel, bottomPanel);
-
-        //Create the buttons
-        setButton(moveButton, "Move", bottomPanel);
-        setButton(saveButton, "Save", bottomPanel);
-        setButton(inventoryButton, "Inventory", bottomPanel);
-        setButton(exitButton, "Exit", bottomPanel);
+        createPanel(topPanel);
     }
 
-    //Labels the buttons given
-    private void setButton(JButton button, String setText, JPanel panel) {
-        button.setText(setText);
-        button.setFocusable(false);
-        button.addActionListener(this);
-        panel.add(button);
-    }
 
     //Create the frame
     private void createFrame(JFrame frame) {
         frame.setSize(1000, 1000);
-        frame.setLayout(new GridLayout(2, 1));
+        frame.setLayout(new GridLayout(1, 1));
         frame.add(topPanel);
-        frame.add(bottomPanel);
+        frame.addKeyListener(this);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
     //Creates the labels with two paramters
-    private void createPanel(JPanel panel, JPanel panelTwo) {
+    private void createPanel(JPanel panel) {
         panel.setLayout(new GridLayout(rowTopPanel, colTopPanel));
-        panelTwo.setLayout(new GridLayout(2, 2));
-        panelTwo.setBackground(Color.DARK_GRAY);
-        panelTwo.setForeground(Color.CYAN);
     }
 
     //Resize the image
@@ -272,4 +268,15 @@ public class LevelSelector implements ActionListener, Serializable {
     public void setBottomTile(ImageIcon bottomTile) {
         this.bottomTile = bottomTile;
     }
+
+    @Override
+    public void keyTyped(KeyEvent keyEvent) {
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent keyEvent) {
+
+    }
+
 }
