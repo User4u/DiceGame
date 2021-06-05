@@ -1,19 +1,32 @@
 package DiceGamev5;
 
+import DiceGamev5.Area.*;
+
 import java.io.FileNotFoundException;
 
 public class GameEngine {
 
-    //private File saveData = new File("saveFile\\SaveFile.txt");
-
-    GameEngine(int playerPos) throws IllegalAccessException, FileNotFoundException{
-        this(playerPos, 1);
+    //Runs the Constructor with ONE parameter
+    //Make it private -- No other object needs access to this!
+    public static void main(String[] args) {
+        new GameEngine(LevelSelector.getColTopPanel());
     }
 
-    GameEngine(int playerPos, int areaLevel){
-        if(areaLevel == 1){
+    //Chains it so we can run two PARAMETER CONSTRUCTOR
+    private GameEngine(int playerPos){
+        this(playerPos, "DESSERT");
+    }
+
+    //Two parameter Constructor
+    private GameEngine(int playerPos, String areaLevel){
+        if(areaLevel.equals("DESSERT")){
+            //Will have Dessert ready, but will go to the intro screen
             new IntroScreen();
-        }else if(areaLevel == 2){
+
+
+        }else if(areaLevel.equals("FORREST")){
+            //Will go straight to the Forrest
+            //NOT REALLY USED ATM
             new ForestLevel(playerPos, areaLevel);
         }
     }
@@ -21,8 +34,6 @@ public class GameEngine {
     //When you click newGame it will by default send you to stage one!
     //Stage 0 = is the Dev Room
     //Stage 1 = Dessert
-    //Stage 2 = Forest
-    GameEngine() throws IllegalAccessException, FileNotFoundException {
-        this(1);
-    }
+    //Stage 2 = Forrest
+
 }

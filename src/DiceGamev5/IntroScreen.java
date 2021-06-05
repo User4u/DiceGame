@@ -1,81 +1,146 @@
 package DiceGamev5;
 
+import jdk.jfr.EventSettings;
+
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
+import DiceGamev5.Area.*;
 
 //The value one is sent over
 public class IntroScreen implements ActionListener {
 
-    //JFrame
+    /*------------------------------------------------------------
+    Clip
+     -----------------------------------------------------------*/
+    Clip clip;
+
+    /*------------------------------------------------------------
+    JFrame
+     -----------------------------------------------------------*/
     private JFrame introFrame = new JFrame("Dice Game v0.5");
 
-    //JPanels
+    /*------------------------------------------------------------
+    JPanel
+     -----------------------------------------------------------*/
     JPanel topPanel = new JPanel();
     JPanel bottomPanel = new JPanel();
 
-    //JLabel
+    /*------------------------------------------------------------
+    JLabel
+     -----------------------------------------------------------*/
     JLabel welcomeLabel = new JLabel();
 
-    //JButtons
+    /*------------------------------------------------------------
+    JButtons
+     -----------------------------------------------------------*/
     private JButton start = new JButton();
     private JButton load = new JButton();
     private JButton update = new JButton();
     private JButton exit = new JButton();
 
-    //Images
-    ImageIcon welcomePic = new ImageIcon("Images/diceImg.png");
+    /*------------------------------------------------------------
+    Images
+     -----------------------------------------------------------*/
+    //ImageIcon welcomePic = new ImageIcon(String.valueOf(getClass().getResourceAsStream("Images/diceImg.png")));
+    //ImageIcon welcomePic = new ImageIcon(getClass().getClassLoader().getResource("diceImg.png"));
+    //ImageIcon welcomePic = new ImageIcon(getClass().getClassLoader().getResource("jack.png"));
+    ImageIcon welcomePic = new ImageIcon("Images/jack.png");
 
-    //Variables
+    /*------------------------------------------------------------
+    Variables
+     -----------------------------------------------------------*/
     private int playerPos = 6;
-    private int playerStage;
-    private int dataArray[] = {playerPos, playerStage};
+    private String playerStage;
+
+
 
     //Contructor
     IntroScreen() {
-        this(1);
+        this("DESSERT");
     }
 
-    IntroScreen(int playerStage) {
+    //One paramater constructor and runs the 'run()' method
+    private IntroScreen(String playerStage) {
         this.playerStage = playerStage;
         run();
     }
 
-    //Creates the JFrame and places Panel, Labels, and Buttons
-    public void run() {
+    /*------------------------------------------------------------
+    Create the JFrame, places the panels, labels, and the buttons
+     -----------------------------------------------------------*/
+    private void run() {
 
-        //Create the JFrame and set it up
+        //Size of the JFrame
         introFrame.setSize(1000, 1000);
+        //Layout define
         introFrame.setLayout(new GridLayout(2, 1));
 
         //Label to add the image to topPanel JPanel plus resize the image to the size!
         welcomeLabel.setIcon(resizeIcon(welcomePic, introFrame.getWidth(), introFrame.getHeight() / 2));
 
+        //Not really needed but we will delete later
         setPanel(topPanel, Color.GREEN, true);
         setPanel(bottomPanel, Color.BLUE, false);
 
-        //Add the three buttons in it!!
-        setButton(start, "Start");
-        setButton(load, "Load Game");
-        setButton(update, "Update Log");
-        setButton(exit, "Exit");
+        //Add the three buttons in it!! Practice lambda's!
+        setButton(start, "Start", event ->{
+            if (event.getSource() == start) {
+                clip.stop();
+                closeFrame();
+                //FIXME LevelSelector, DessertLevel, ForestLevel
+                new DessertLevel(LevelSelector.getColTopPanel(), "DESSERT");
+            }
+        });
+        setButton(load, "Load Game", event ->{
+            load.setEnabled(false);
+        });
+        setButton(update, "Update Log", event ->{
+            update.setEnabled(false);
+        });
+        setButton(exit, "Exit", event -> {
+            if (event.getSource() == exit) {
+                clip.stop();
+                System.exit(0);
+            }
+        });
 
-        //Shows the JFrame
+        //Audio that is played in the beginning of the program
+        String soundName = "Images/qBGMq.wav";
+        AudioInputStream audioInputStream;
+        try {
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (UnsupportedAudioFileException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        }
+
+        //Displays the JFrame
         introFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         introFrame.setLocationRelativeTo(null);
         introFrame.setVisible(true);
     }
 
-    //Sets the panels
+    /*------------------------------------------------------------
+    Set the panels depending on what the argument is given
+    -----------------------------------------------------------*/
     private void setPanel(JPanel panel, Color color, boolean isTopPanel) {
-        if (isTopPanel == false)
+        if (isTopPanel == false) {
             panel.setLayout(new GridLayout(4, 1));
-        panel.setBackground(color);
-        if (isTopPanel == true)
+            panel.setBackground(color);
+        }if (isTopPanel == true)
             panel.add(welcomeLabel);
         if (isTopPanel == true)
             introFrame.add(welcomeLabel);
@@ -83,26 +148,33 @@ public class IntroScreen implements ActionListener {
             introFrame.add(panel);
     }
 
-    //Sets the buttons
-    private void setButton(JButton button, String setText) {
+    /*------------------------------------------------------------
+    Set the buttons and give it meaning
+     -----------------------------------------------------------*/
+    private void setButton(JButton button, String setText, ActionListener event) {
         button.setText(setText);
         button.setFocusable(false);
-        button.addActionListener(this);
+        button.addActionListener(event);
         bottomPanel.add(button);
     }
 
+    /*------------------------------------------------------------
+     Not needed with Lambdas anymore -- WILL KEEP IN CASE CODE BREAKS MID WAY!
+     -----------------------------------------------------------*/
     @Override
     public void actionPerformed(ActionEvent e) {
-        //Features for
+        /*Features for
         // ing the exit button
-        if (e.getSource() == exit) {
-            System.exit(0);
-        }
+        //if (e.getSource() == exit) {
+         //   clip.stop();
+          //  System.exit(0);
+        //}
 
         //Clicking the start button will send you to the dessert level @ position 6
         if (e.getSource() == start) {
+            clip.stop();
             closeFrame();
-            new DessertLevel(LevelSelector.getColTopPanel(), 1);
+            new DessertLevel(LevelSelector.getColTopPanel(), "DESSERT");
 
         }
 
@@ -111,12 +183,13 @@ public class IntroScreen implements ActionListener {
         //TODO MAKE IT LOAD WITH SER METHOD UNSERIALIZABLE
         if (e.getSource() == load) {
             try {
-                File readSave = new File("SaveFile.txt");
+                clip.stop();
+                File readSave = new File(String.valueOf(getClass().getResource("SaveFile.txt")));
                 Scanner myReader = new Scanner(readSave);
 
                 while (myReader.hasNextInt()) {
                     setPlayerPos(myReader.nextInt());
-                    setPlayerStage(myReader.nextInt());
+                    setPlayerStage(myReader.nextLine());
                 }
 
                 myReader.close();
@@ -125,23 +198,28 @@ public class IntroScreen implements ActionListener {
                 fileNotFoundException.printStackTrace();
             }
 
-            if (getPlayerStage() == 1) {
+            if (getPlayerStage().equals("DESSERT")) {
                 new DessertLevel(getPlayerPos(), getPlayerStage());
-            } else if (getPlayerStage() == 2) {
+            } else if (getPlayerStage().equals("FOREST")) {
                 new ForestLevel(getPlayerPos(), getPlayerStage());
-            } else if (getPlayerStage() == 3) {
+            } else if (getPlayerStage().equals("HIDDEN")) {
 
             }
         }
+        */
     }
 
-    //Closes the frame
+    /*------------------------------------------------------------
+    Closes the introFrame
+    -----------------------------------------------------------*/
     private void closeFrame() {
         introFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         introFrame.dispose();
     }
 
-    //Resizes the image
+    /*------------------------------------------------------------
+    Allow us to resize the image to the correct size
+    -----------------------------------------------------------*/
     public static Icon resizeIcon(ImageIcon icon, int resizedWidth, int resizedHeight) {
         Image img = icon.getImage();
         Image resizedImage = img.getScaledInstance(resizedWidth, resizedHeight, java.awt.Image.SCALE_SMOOTH);
@@ -153,7 +231,7 @@ public class IntroScreen implements ActionListener {
         return playerPos;
     }
 
-    public int getPlayerStage() {
+    public String getPlayerStage() {
         return playerStage;
     }
 
@@ -162,7 +240,7 @@ public class IntroScreen implements ActionListener {
         this.playerPos = playerPos;
     }
 
-    public void setPlayerStage(int playerStage) {
+    public void setPlayerStage(String playerStage) {
         this.playerStage = playerStage;
     }
 }
